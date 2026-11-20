@@ -30,9 +30,10 @@ SECRET = 'private-api-key'
 def test_http_failure_reports_status_and_logs_route_without_upstream_details(monkeypatch, caplog, status):
     result = Mock(status_code=status, text=f'private server error: {SECRET}', reason=SECRET)
     monkeypatch.setattr(requests, 'request', Mock(return_value=result))
+    client = Client('http://jellyfin.example', SECRET)
 
     with pytest.raises(MediaServerError) as error:
-        Client('http://jellyfin.example', SECRET).request('POST', ROUTE)
+        client.request('POST', ROUTE)
 
     assert error.value.status_code == 502
     assert f'HTTP {status}' in str(error.value)
@@ -65,9 +66,10 @@ def test_http_failure_reports_status_and_logs_route_without_upstream_details(mon
 def test_known_http_errors_keep_their_public_status_and_message(monkeypatch, status, message):
     result = Mock(status_code=status)
     monkeypatch.setattr(requests, 'request', Mock(return_value=result))
+    client = Client('http://jellyfin.example', SECRET)
 
     with pytest.raises(MediaServerError, match=message) as error:
-        Client('http://jellyfin.example', SECRET).request('POST', ROUTE)
+        client.request('POST', ROUTE)
 
     assert error.value.status_code == status
     result.close.assert_called_once()
@@ -79,9 +81,10 @@ def test_known_http_errors_keep_their_public_status_and_message(monkeypatch, sta
 ])
 def test_transport_failure_logs_its_type_without_exception_details(monkeypatch, caplog, failure):
     monkeypatch.setattr(requests, 'request', Mock(side_effect=failure(f'private connection error: {SECRET}')))
+    client = Client('http://jellyfin.example', SECRET)
 
     with pytest.raises(MediaServerError, match='Could not reach Jellyfin') as error:
-        Client('http://jellyfin.example', SECRET).request('POST', ROUTE)
+        client.request('POST', ROUTE)
 
     assert error.value.status_code == 502
     assert f'POST {ROUTE}' in caplog.text
@@ -92,9 +95,10 @@ def test_transport_failure_logs_its_type_without_exception_details(monkeypatch, 
 def test_invalid_json_logs_the_request_and_closes_the_response(monkeypatch, caplog):
     result = Mock(status_code=200, json=Mock(side_effect=ValueError(f'private response: {SECRET}')))
     monkeypatch.setattr(requests, 'request', Mock(return_value=result))
+    client = Client('http://jellyfin.example', SECRET)
 
     with pytest.raises(MediaServerError, match='Jellyfin returned an invalid response'):
-        Client('http://jellyfin.example', SECRET).json('POST', ROUTE)
+        client.json('POST', ROUTE)
 
     assert f'POST {ROUTE}' in caplog.text
     assert 'invalid JSON' in caplog.text
