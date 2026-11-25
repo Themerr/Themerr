@@ -24,6 +24,7 @@ def _clean_metadata(po_path):
         if not line.startswith((
             '"POT-Creation-Date:',
             '"PO-Revision-Date:',
+            '"Generated-By:',
             '# FIRST AUTHOR <EMAIL@ADDRESS>,',
             '"Last-Translator: FULL NAME <EMAIL@ADDRESS>',
         ))
