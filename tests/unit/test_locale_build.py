@@ -86,6 +86,7 @@ def test_locale_extraction_cleans_template_and_preserves_crowdin_catalogs(tmp_pa
     catalog = polib.pofile(str(template))
     assert 'POT-Creation-Date' not in catalog.metadata
     assert 'PO-Revision-Date' not in catalog.metadata
+    assert 'Generated-By' not in catalog.metadata
     assert 'FIRST AUTHOR <EMAIL@ADDRESS>' not in catalog.header
     assert 'Last-Translator' not in catalog.metadata
     assert catalog.metadata['Report-Msgid-Bugs-To'] == 'https://github.com/Themerr/Themerr/issues'
